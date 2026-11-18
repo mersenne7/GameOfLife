@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADULTING: Modern Life Simulator</title>
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-panel: #111827;
+      --bg-card: #1e293b;
+      --bg-card-hover: #263449;
+      --border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-primary: #6366f1;
+      --accent-secondary: #ec4899;
+      --wealth: #10b981;
+      --sanity: #8b5cf6;
+      --health: #f43f5e;
+      --social: #f59e0b;
+      --warn: #eab308;
+      --danger: #ef4444;
+      --radius: 14px;
+      --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at 15% 15%, #172036 0%, var(--bg-base) 65%);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Top Header Bar */
+    header.top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.9rem 1.5rem;
+      background: rgba(17, 24, 39, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 1.2rem;
+      letter-spacing: -1px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand span {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Macro Ticker & Fulfillment Pill */
+    .header-metrics {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .macro-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+    }
+
+    .macro-item strong {
+      color: var(--text-main);
+    }
+
+    .fulfillment-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2));
+      border: 1px solid rgba(139, 92, 246, 0.5);
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+    }
+
+    .fulfillment-score {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #c4b5fd;
+    }
+
+    /* Main Grid Layout */
+    .app-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr 360px;
+      gap: 1.25rem;
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+
+    @media (max-width: 1320px) {
+      .app-grid {
+        grid-template-columns: 300px 1fr;
+      }
+      .right-col {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .app-grid {
+        grid-template-columns: 1fr;
+      }
+      .right-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.15rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .panel-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Four Holistic Meters */
+    .meter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .meter-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+    }
+
+    .meter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.4rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .meter-val {
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .meter-sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Profile Summary Card */
+    .profile-box {
+      background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.9rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+
+    .stat-chip {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.5rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-chip .label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .stat-chip .value {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* Cashflow Ledger */
+    .ledger-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+      font-size: 0.82rem;
+    }
+
+    .ledger-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.25rem 0;
+      border-bottom: 1px dashed rgba(148, 163, 184, 0.15);
+    }
+
+    .ledger-row.total {
+      border-top: 1px solid var(--border);
+      border-bottom: none;
+      padding-top: 0.5rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .pos { color: var(--wealth); }
+    .neg { color: var(--health); }
+
+    /* Center Column: Board & Spinner */
+    .board-container {
+      position: relative;
+      background: radial-gradient(circle at center, #162032 0%, #0d131f 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      min-height: 450px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .board-svg-wrap {
+      width: 100%;
+      overflow-x: auto;
+      padding: 0.5rem;
+    }
+
+    #lifeBoardSvg {
+      width: 100%;
+      height: auto;
+      min-width: 680px;
+      display: block;
+    }
+
+    .board-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      padding: 0.65rem 1rem;
+      background: rgba(15, 23, 42, 0.85);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    /* Spinner & Action Controls Bar */
+    .control-deck {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.25rem;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+    }
+
+    @media (max-width: 640px) {
+      .control-deck {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: 124px;
+      height: 124px;
+      display: grid;
+      place-items: center;
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 9px solid transparent;
+      border-right: 9px solid transparent;
+      border-top: 16px solid #f8fafc;
+      z-index: 5;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+    }
+
+    #spinnerWheel {
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      border: 4px solid #334155;
+      transition: transform 1.25s cubic-bezier(0.15, 0.85, 0.25, 1);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+      cursor: pointer;
+    }
+
+    .wheel-center-cap {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 2px solid #94a3b8;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: #f8fafc;
+      pointer-events: none;
+    }
+
+    .turn-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .spin-btn {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+      border: none;
+      padding: 0.85rem 1.4rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+
+    .spin-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(236, 72, 153, 0.5);
+    }
+
+    .spin-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 0.48rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-primary);
+    }
+
+    .btn-secondary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Right Column Tabs & Cards */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.35rem;
+      background: #0f172a;
+      padding: 0.3rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      padding: 0.45rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab-btn.active {
+      background: var(--bg-card);
+      color: var(--text-main);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .tab-pane {
+      display: none;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .tab-pane.active {
+      display: flex;
+    }
+
+    .asset-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 10px;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .asset-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .asset-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .asset-btn-row {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    /* Timeline Feed */
+    .log-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      max-height: 290px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+
+    .log-item {
+      background: rgba(30, 41, 59, 0.65);
+      border-left: 3px solid var(--accent-primary);
+      padding: 0.55rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+
+    .log-item.warn { border-left-color: var(--warn); }
+    .log-item.danger { border-left-color: var(--danger); }
+    .log-item.good { border-left-color: var(--wealth); }
+
+    .log-item .age-tag {
+      font-weight: 800;
+      color: #cbd5e1;
+      margin-right: 0.35rem;
+    }
+
+    /* Modals (Onboarding, Decisions, Events, Legacy Summary) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 10, 19, 0.82);
+      backdrop-filter: blur(6px);
+      display: none;
+      place-items: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+
+    .modal-backdrop.open {
+      display: grid;
+    }
+
+    .modal-box {
+      background: #111827;
+      border: 1px solid #475569;
+      border-radius: 18px;
+      max-width: 680px;
+      width: 100%;
+      padding: 1.6rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: popIn 0.22s ease-out;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.95) translateY(8px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .modal-badge {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+
+    .modal-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .modal-body {
+      font-size: 0.92rem;
+      color: #cbd5e1;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    .choice-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.95rem 1.1rem;
+      text-align: left;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .choice-card:hover {
+      border-color: var(--accent-primary);
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+    }
+
+    .choice-card h4 {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .choice-card p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .impact-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.25rem;
+    }
+
+    .impact-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Legacy Report Card */
+    .grade-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    .grade-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .grade-letter {
+      font-size: 1.7rem;
+      font-weight: 900;
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-badge">A!</div>
+      <div>
+        <h1>ADULTING: Modern Life Simulator</h1>
+        <span>Nonlinear Life Paths • Holistic Fulfillment • Ages 18–70</span>
+      </div>
+    </div>
+
+    <div class="header-metrics">
+      <div class="macro-pill">
+        <span class="macro-item">Age: <strong id="hdrAge">18</strong> / 70</span>
+        <span>•</span>
+        <span class="macro-item">Inflation: <strong id="hdrInflation">3.2%</strong></span>
+        <span>•</span>
+        <span class="macro-item">Mortgage APR: <strong id="hdrMortgageRate">6.5%</strong></span>
+        <span>•</span>
+        <span class="macro-item">Market: <strong id="hdrMarketMood">Steady</strong></span>
+      </div>
+
+      <div class="fulfillment-pill" title="Aggregate score across Net Worth, Sanity, Physical Health, and Social Capital">
+        <span>Fulfillment Index</span>
+        <span class="fulfillment-score" id="hdrFulfillment">50 / 100</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN 3-COLUMN WORKSPACE -->
+  <main class="app-grid">
+
+    <!-- LEFT COLUMN: HOLISTIC METERS & MONTHLY CASHFLOW -->
+    <section class="panel">
+      <div class="panel-title">
+        <span>Holistic Fulfillment Meters</span>
+        <span id="archetypeBadge" style="color:#a5b4fc; text-transform:none;">Fresh Grad</span>
+      </div>
+
+      <div class="meter-list">
+        <!-- 1. Financial Net Worth -->
+        <div class="meter-card">
+          <div class="meter-header">
+            <span>1. Financial Net Worth</span>
+            <span class="meter-val" id="valNetWorth" style="color:var(--wealth);">$0</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="barNetWorth" style="width: 25%; background: var(--wealth);"></div>
+          </div>
+          <div class="meter-sub">
+            <span>Liquid Cash: <strong id="valCash">$2,000</strong></span>
+            <span>Debt: <strong id="valDebt">$0</strong></span>
+          </div>
+        </div>
+
+        <!-- 2. Mental Wellbeing / Sanity -->
+        <div class="meter-card">
+          <div class="meter-header">
+            <span>2. Mental Wellbeing (Sanity)</span>
+            <span class="meter-val" id="valSanity" style="color:var(--sanity);">80 / 100</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="barSanity" style="width: 80%; background: var(--sanity);"></div>
+          </div>
+          <div class="meter-sub">
+            <span id="subSanityStatus">Resilient</span>
+            <span>Schedule: <strong id="valWorkWeek">5-Day Std</strong></span>
+          </div>
+        </div>
+
+        <!-- 3. Physical Health -->
+        <div class="meter-card">
+          <div class="meter-header">
+            <span>3. Physical Health</span>
+            <span class="meter-val" id="valHealth" style="color:var(--health);">85 / 100</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="barHealth" style="width: 85%; background: var(--health);"></div>
+          </div>
+          <div class="meter-sub">
+            <span id="subHealthStatus">Rested</span>
+            <span>Burnout Risk: <strong id="valBurnoutRisk">Low</strong></span>
+          </div>
+        </div>
+
+        <!-- 4. Social Capital / Community -->
+        <div class="meter-card">
+          <div class="meter-header">
+            <span>4. Social Capital &amp; Community</span>
+            <span class="meter-val" id="valSocial" style="color:var(--social);">60 / 100</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="barSocial" style="width: 60%; background: var(--social);"></div>
+          </div>
+          <div class="meter-sub">
+            <span id="valHousehold">Single • Roommates</span>
+            <span id="valPets">No Pets</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Career & Lifestyle Snapshot -->
+      <div class="profile-box">
+        <div class="stat-chip">
+          <span class="label">Career Track</span>
+          <span class="value" id="chipCareer">Unchosen</span>
+        </div>
+        <div class="stat-chip">
+          <span class="label">Annual Base Salary</span>
+          <span class="value" id="chipSalary">$0/yr</span>
+        </div>
+        <div class="stat-chip">
+          <span class="label">Housing Status</span>
+          <span class="value" id="chipHousing">Roommates</span>
+        </div>
+        <div class="stat-chip">
+          <span class="label">Stock / Equity Units</span>
+          <span class="value" id="chipEquity">0 RSUs</span>
+        </div>
+      </div>
+
+      <!-- Annualized / Monthly Cashflow Breakdown -->
+      <div class="panel-title" style="margin-top:0.2rem;">
+        <span>Annual Cashflow Engine</span>
+        <span style="text-transform:none;">Per Year</span>
+      </div>
+      <div class="ledger-list">
+        <div class="ledger-row">
+          <span>After-Tax Income + Side Hustle</span>
+          <span class="pos" id="cfIncome">+$0</span>
+        </div>
+        <div class="ledger-row">
+          <span>Housing (Rent / Mortgage)</span>
+          <span class="neg" id="cfHousing">-$0</span>
+        </div>
+        <div class="ledger-row">
+          <span>Living, Groceries &amp; Dependents</span>
+          <span class="neg" id="cfLiving">-$0</span>
+        </div>
+        <div class="ledger-row">
+          <span>Student Loan &amp; Debt Service</span>
+          <span class="neg" id="cfDebt">-$0</span>
+        </div>
+        <div class="ledger-row">
+          <span>Subscriptions &amp; Lifestyle Creep</span>
+          <span class="neg" id="cfSubs">-$0</span>
+        </div>
+        <div class="ledger-row total">
+          <span>Net Annual Savings Rate</span>
+          <span id="cfNet">+$0 / yr</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: INTERACTIVE NODE GRAPH BOARD & SPINNER -->
+    <section class="panel" style="gap: 1rem;">
+      <div class="panel-title">
+        <span>Interactive Life Path Graph (Ages 18 → 70)</span>
+        <span id="nodeLocationLabel" style="color:#38bdf8; text-transform:none;">Node 0: Age 18 Launchpad</span>
+      </div>
+
+      <div class="board-container">
+        <div class="board-svg-wrap">
+          <svg id="lifeBoardSvg" viewBox="0 0 920 430" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="board-legend">
+          <span><i class="legend-dot" style="background:#6366f1;"></i>Milestone / Career</span>
+          <span><i class="legend-dot" style="background:#ec4899;"></i>Branching Dilemma</span>
+          <span><i class="legend-dot" style="background:#f59e0b;"></i>Modern Hiccup / Action Card</span>
+          <span><i class="legend-dot" style="background:#10b981;"></i>Wellness / Community</span>
+          <span><i class="legend-dot" style="background:#38bdf8;"></i>Market / Financial Shift</span>
+        </div>
+      </div>
+
+      <!-- SPINNER & TURN CONTROLS -->
+      <div class="control-deck">
+        <div class="wheel-wrapper" id="wheelTrigger" title="Click to Spin!">
+          <div class="wheel-pointer"></div>
+          <svg id="spinnerWheel" viewBox="0 0 100 100">
+            <g transform="translate(50,50)">
+              <path d="M0,0 L0,-48 A48,48 0 0,1 41.57,-24 Z" fill="#6366f1"/>
+              <path d="M0,0 L41.57,-24 A48,48 0 0,1 41.57,24 Z" fill="#ec4899"/>
+              <path d="M0,0 L41.57,24 A48,48 0 0,1 0,48 Z" fill="#10b981"/>
+              <path d="M0,0 L0,48 A48,48 0 0,1 -41.57,24 Z" fill="#f59e0b"/>
+              <path d="M0,0 L-41.57,24 A48,48 0 0,1 -41.57,-24 Z" fill="#8b5cf6"/>
+              <path d="M0,0 L-41.57,-24 A48,48 0 0,1 0,-48 Z" fill="#06b6d4"/>
+              <text x="14" y="-26" fill="#fff" font-size="10" font-weight="800" text-anchor="middle">1</text>
+              <text x="30" y="4" fill="#fff" font-size="10" font-weight="800" text-anchor="middle">2</text>
+              <text x="14" y="34" fill="#fff" font-size="10" font-weight="800" text-anchor="middle">3</text>
+              <text x="-14" y="34" fill="#fff" font-size="10" font-weight="800" text-anchor="middle">4</text>
+              <text x="-30" y="4" fill="#fff" font-size="10" font-weight="800" text-anchor="middle">5</text>
+              <text x="-14" y="-26" fill="#fff" font-size="10" font-weight="800" text-anchor="middle">6</text>
+            </g>
+          </svg>
+          <div class="wheel-center-cap" id="wheelNumber">SPIN</div>
+        </div>
+
+        <div class="turn-controls">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+              <h3 style="font-size:1.02rem; font-weight:800;" id="turnHeadline">Ready to Spin the Life Wheel</h3>
+              <p style="font-size:0.8rem; color:var(--text-muted);" id="turnSubtext">Each spin advances 1–6 nodes (~1.5 years per node), compounding investments, loans, and wellness.</p>
+            </div>
+            <button class="spin-btn" id="btnSpin">
+              <span>🎡 Spin Wheel (Advance Life)</span>
+            </button>
+          </div>
+
+          <div class="quick-actions">
+            <button class="btn-secondary" id="btnTherapy" title="Spend $1,800 for +14 Sanity & +5 Health">🧠 Therapy &amp; Coaching ($1.8k)</button>
+            <button class="btn-secondary" id="btnGym" title="Spend $1,200 for +12 Physical Health & +4 Sanity">🥗 Preventive Health Reset ($1.2k)</button>
+            <button class="btn-secondary" id="btnCommunity" title="Spend $900 hosting friends/volunteering for +12 Social Capital">🤝 Host Community Dinner ($900)</button>
+            <button class="btn-secondary" id="btnAuditSubs" title="Cancel forgotten streaming/app subscriptions to save $1,800/yr">✂️ Audit Subscriptions</button>
+            <button class="btn-secondary" id="btnSideGig" title="Toggle weekend side hustle (+$7,500/yr, -5 Sanity/Health per turn)">⚡ Toggle Side Hustle: OFF</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: INVENTORY, ASSETS, HOUSING & CHRONICLE -->
+    <div class="right-col panel">
+      <div>
+        <div class="panel-title" style="margin-bottom: 0.65rem;">
+          <span>Life Portfolio &amp; Decisions Desk</span>
+        </div>
+
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="tabInvest">📈 Investments</button>
+          <button class="tab-btn" data-tab="tabHousing">🏠 Real Estate</button>
+          <button class="tab-btn" data-tab="tabLife">❤️ Relationships</button>
+        </div>
+
+        <!-- TAB 1: INVESTMENTS & DEBT -->
+        <div class="tab-pane active" id="tabInvest" style="margin-top:0.8rem;">
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>High-Yield Savings (HYSA)</span>
+              <span class="pos" id="balHysa">$0</span>
+            </div>
+            <div class="asset-desc">4.5% APY • Zero volatility • Emergency buffer</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.invest('hysa', 5000)">+$5k</button>
+              <button class="btn-secondary" onclick="Game.withdraw('hysa', 5000)">Withdraw $5k</button>
+            </div>
+          </div>
+
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Broad Index Funds (S&amp;P / Global)</span>
+              <span class="pos" id="balIndex">$0</span>
+            </div>
+            <div class="asset-desc">~8.5% avg annual growth • Compounding wealth engine</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.invest('index', 5000)">+$5k</button>
+              <button class="btn-secondary" onclick="Game.invest('index', 20000)">+$20k</button>
+              <button class="btn-secondary" onclick="Game.withdraw('index', 10000)">Sell $10k</button>
+            </div>
+          </div>
+
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Crypto &amp; Angel Syndicate Bets</span>
+              <span style="color:#f59e0b;" id="balCrypto">$0</span>
+            </div>
+            <div class="asset-desc">High volatility (-45% to +85% swings) • Stress-inducing</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.invest('crypto', 3000)">+$3k Gamble</button>
+              <button class="btn-secondary" onclick="Game.withdraw('crypto', 5000)">Cash Out $5k</button>
+            </div>
+          </div>
+
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Student Loans &amp; Credit Debt</span>
+              <span class="neg" id="balStudentLoan">$0</span>
+            </div>
+            <div class="asset-desc">6.5% APR compounding • Paying down boosts Sanity</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.payDebt(5000)">Pay $5k Principal</button>
+              <button class="btn-secondary" onclick="Game.payDebt(15000)">Pay $15k Principal</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: HOUSING & REAL ESTATE -->
+        <div class="tab-pane" id="tabHousing" style="margin-top:0.8rem;">
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Current Residence</span>
+              <span id="housingCurrentTitle" style="color:#38bdf8;">Shared Apartment</span>
+            </div>
+            <div class="asset-desc" id="housingCurrentDesc">Splitting rent with 2 roommates ($13,200/yr).</div>
+          </div>
+
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Rent Options</span>
+              <span>Flexible</span>
+            </div>
+            <div class="asset-desc">Downsize to save cash or rent solo for peace of mind (+Sanity).</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.changeHousing('roommates')">Roommates ($1.1k/mo)</button>
+              <button class="btn-secondary" onclick="Game.changeHousing('studio')">Solo Studio ($2.1k/mo)</button>
+            </div>
+          </div>
+
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Buy Urban Condo ($360k)</span>
+              <span class="pos">Down: $54k</span>
+            </div>
+            <div class="asset-desc">Builds home equity &amp; hedges rent hikes. Requires $54k cash down.</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.buyProperty('condo')">Buy Urban Condo</button>
+            </div>
+          </div>
+
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Buy Eco Townhome ($620k)</span>
+              <span class="pos">Down: $95k</span>
+            </div>
+            <div class="asset-desc">High appreciation + boosts Health &amp; Social Capital. Down: $95k.</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.buyProperty('house')">Buy Townhome</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: RELATIONSHIPS & HOUSEHOLD -->
+        <div class="tab-pane" id="tabLife" style="margin-top:0.8rem;">
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Relationship Status</span>
+              <span id="relStatusLabel" style="color:#f472b6;">Single</span>
+            </div>
+            <div class="asset-desc" id="relStatusDesc">Open to dating, community clubs, or solo independence.</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.relationshipAction('date')">Invest in Dating / Partner ($1.5k)</button>
+              <button class="btn-secondary" onclick="Game.relationshipAction('cohabit')">Move In Together (DINK Split)</button>
+            </div>
+          </div>
+
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Dependents &amp; Family</span>
+              <span id="kidsLabel">0 Dependents</span>
+            </div>
+            <div class="asset-desc">Raising a child/dependent costs ~$14k/yr &amp; energy, but yields deep Social &amp; Legacy fulfillment.</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.relationshipAction('kid')">Welcome a Child / Dependent</button>
+            </div>
+          </div>
+
+          <div class="asset-card">
+            <div class="asset-card-head">
+              <span>Companion Pet</span>
+              <span id="petLabel">None</span>
+            </div>
+            <div class="asset-desc">Adopting a rescue pet adds $1,400/yr in vet/food care, +4 Sanity/turn.</div>
+            <div class="asset-btn-row">
+              <button class="btn-secondary" onclick="Game.relationshipAction('pet')">🐾 Adopt Rescue Dog/Cat ($800)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIFE CHRONICLE LOG -->
+      <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:0.5rem;">
+        <div class="panel-title">
+          <span>Life Chronicle &amp; Event Feed</span>
+          <button class="btn-secondary" style="padding:0.2rem 0.5rem; font-size:0.7rem;" onclick="Game.openSetupModal()">↻ New Life</button>
+        </div>
+        <div class="log-feed" id="logFeed"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: ONBOARDING / DECISIONS / EVENTS / ENDGAME -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal-box" id="modalBox">
+      <span class="modal-badge" id="modalBadge">MILESTONE</span>
+      <h2 class="modal-title" id="modalTitle">Welcome to Adulting</h2>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="choice-grid" id="modalChoices"></div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ADULTING: MODERN LIFE SIMULATOR
+     * Complete Game Engine, Node Graph Renderer, Modern Economy & Holistic Fulfillment System
+     */
+    const BOARD_NODES = [
+      { id: 0,  age: 18, x: 65,  y: 75,  type: 'start',     label: 'Age 18 Launch',     next: [1] },
+      { id: 1,  age: 20, x: 165, y: 75,  type: 'hiccup',    label: 'First Apt Lease',   next: [2] },
+      { id: 2,  age: 21, x: 265, y: 75,  type: 'wellness',  label: 'Third-Place Club',  next: [3] },
+      { id: 3,  age: 23, x: 365, y: 75,  type: 'milestone', label: 'Entry Career',      next: [4] },
+      { id: 4,  age: 24, x: 465, y: 75,  type: 'market',    label: 'Inflation Spike',   next: [5] },
+      { id: 5,  age: 26, x: 565, y: 75,  type: 'branch',    label: '20s Fork',          next: [6, 7], branchPrompt: 'fork26' },
+      // Branch A (Node 6: Fast-Track Hustle) vs Branch B (Node 7: Balanced Craft)
+      { id: 6,  age: 27, x: 685, y: 42,  type: 'milestone', label: 'Hyper-Growth Startup', next: [8] },
+      { id: 7,  age: 27, x: 685, y: 112, type: 'wellness',  label: '4-Day Week Pivot',     next: [8] },
+      { id: 8,  age: 29, x: 820, y: 75,  type: 'hiccup',    label: 'Saturn Return',     next: [9] },
+
+      // Row 2 (Right to Left)
+      { id: 9,  age: 31, x: 820, y: 185, type: 'branch',    label: 'Housing Dilemma',   next: [10] },
+      { id: 10, age: 33, x: 710, y: 185, type: 'hiccup',    label: 'Tech Reorg / AI',   next: [11] },
+      { id: 11, age: 35, x: 600, y: 185, type: 'wellness',  label: 'Preventive Check',  next: [12] },
+      { id: 12, age: 37, x: 490, y: 185, type: 'branch',    label: 'Mid-30s Fork',      next: [13, 14], branchPrompt: 'fork37' },
+      // Branch A (Node 13: Executive Climb) vs Branch B (Node 14: Sabbatical / Indie)
+      { id: 13, age: 39, x: 370, y: 150, type: 'market',    label: 'VP Golden Handcuffs', next: [15] },
+      { id: 14, age: 39, x: 370, y: 220, type: 'wellness',  label: 'Mini-Sabbatical',     next: [15] },
+      { id: 15, age: 41, x: 250, y: 185, type: 'hiccup',    label: 'Surprise Root Canal', next: [16] },
+      { id: 16, age: 43, x: 140, y: 185, type: 'milestone', label: 'Peak Earning Era',    next: [17] },
+      { id: 17, age: 45, x: 65,  y: 185, type: 'market',    label: 'Rate Cycle Shift',    next: [18] },
+
+      // Row 3 (Left to Right)
+      { id: 18, age: 47, x: 65,  y: 305, type: 'branch',    label: 'Midlife Realignment', next: [19] },
+      { id: 19, age: 50, x: 175, y: 305, type: 'wellness',  label: 'Longevity Habits',    next: [20] },
+      { id: 20, age: 52, x: 285, y: 305, type: 'hiccup',    label: 'Sandwich Gen Care',   next: [21] },
+      { id: 21, age: 55, x: 400, y: 305, type: 'branch',    label: 'Late-Career Fork',    next: [22, 23], branchPrompt: 'fork55' },
+      { id: 22, age: 58, x: 520, y: 270, type: 'market',    label: 'Board Advisor',       next: [24] },
+      { id: 23, age: 58, x: 520, y: 345, type: 'wellness',  label: 'Mentorship & Art',    next: [24] },
+      { id: 24, age: 62, x: 645, y: 305, type: 'milestone', label: 'Coast-FIRE Check',    next: [25] },
+      { id: 25, age: 66, x: 750, y: 305, type: 'wellness',  label: 'Community Elder',     next: [26] },
+      { id: 26, age: 70, x: 850, y: 305, type: 'finish',    label: 'Age 70 Legacy!',      next: [] }
+    ];
+
+    const PATH_PRESETS = {
+      degree: {
+        name: '4-Year University Degree',
+        badge: 'University Grad',
+        cash: 2500,
+        studentLoan: 58000,
+        salary: 68000,
+        salaryGrowth: 1.06,
+        equity: 20,
+        sanity: 76,
+        health: 82,
+        social: 72,
+        desc: 'Start with $58k student debt at 6.5% APR, strong alumni network (+Social), and high corporate/equity ceiling.'
+      },
+      bootcamp: {
+        name: 'Intensive Tech Bootcamp',
+        badge: 'Bootcamp Dev',
+        cash: 3500,
+        studentLoan: 14000,
+        salary: 74000,
+        salaryGrowth: 1.055,
+        equity: 45,
+        sanity: 70,
+        health: 78,
+        social: 58,
+        desc: 'Low $14k debt, fast entry into tech + 45 RSUs, but higher imposter syndrome and layoff exposure.'
+      },
+      gig: {
+        name: 'Immediate Trade / Gig Hustle',
+        badge: 'Self-Made Hustler',
+        cash: 6500,
+        studentLoan: 0,
+        salary: 48000,
+        salaryGrowth: 1.045,
+        equity: 0,
+        sanity: 82,
+        health: 74,
+        social: 64,
+        desc: '$0 student debt and immediate cashflow, but higher physical wear-and-tear unless you scale into business ownership.'
+      },
+      creator: {
+        name: 'Indie Creator / Solopreneur',
+        badge: 'Indie Creator',
+        cash: 4000,
+        studentLoan: 0,
+        salary: 38000,
+        salaryGrowth: 1.08,
+        equity: 80,
+        sanity: 74,
+        health: 84,
+        social: 68,
+        desc: '$0 debt, autonomous schedule, lower initial base salary, but high viral/equity upside (80 creator equity units).'
+      }
+    };
+
+    const MODERN_HICCUPS = [
+      {
+        title: 'Rent Hike: "Luxury" Renovations',
+        badge: 'MODERN HICCUP',
+        body: 'Your landlord painted the hallway gray, installed a smart lock that barely works, and hiked renewal rent by 35%.',
+        choices: [
+          {
+            label: 'Absorb the hike to avoid moving stress',
+            desc: 'Pay +$3,600 this year, keep your routine intact.',
+            tags: ['-$3,600 Cash', '+2 Sanity'],
+            fn: (s) => { s.cash -= 3600; s.sanity = clamp(s.sanity + 2); return 'Paid the steep renewal rate to avoid packing boxes.'; }
+          },
+          {
+            label: 'Spend a brutal weekend moving apartments',
+            desc: 'Save money, but lose sleep and strain your back.',
+            tags: ['-$900 Moving Cost', '-7 Sanity', '-6 Health'],
+            fn: (s) => { s.cash -= 900; s.sanity = clamp(s.sanity - 7); s.health = clamp(s.health - 6); return 'Moved across town in a rented van. Back hurts, wallet survived.'; }
+          }
+        ]
+      },
+      {
+        title: 'Surprise Dental Bill: Root Canal & Crown',
+        badge: 'HEALTH HICCUP',
+        body: 'Your "comprehensive" dental plan caps out at $1,500. Your molar demands immediate attention.',
+        choices: [
+          {
+            label: 'Pay $2,600 out-of-pocket for top specialist',
+            desc: 'Immediate relief and long-term physical health protection.',
+            tags: ['-$2,600 Cash', '+6 Health'],
+            fn: (s) => { s.cash -= 2600; s.health = clamp(s.health + 6); return 'Paid $2,600 for premium dental care. Zero lingering tooth pain.'; }
+          },
+          {
+            label: 'Put it on high-interest payment plan & delay crown',
+            desc: 'Adds $3,100 to debt and lingers on your nerves.',
+            tags: ['+$3,100 Debt', '-8 Health', '-6 Sanity'],
+            fn: (s) => { s.studentLoan += 3100; s.health = clamp(s.health - 8); s.sanity = clamp(s.sanity - 6); return 'Deferred dental work onto credit. Chronic ache drained energy.'; }
+          }
+        ]
+      },
+      {
+        title: 'Algorithmic Viral Windfall!',
+        badge: 'MODERN WINDFALL',
+        body: 'A niche project, side-hustle template, or open-source tool you shared blew up overnight.',
+        choices: [
+          {
+            label: 'Monetize immediately with sponsorships & digital product',
+            desc: 'Pull all-nighters to capture $14,000 in windfall revenue.',
+            tags: ['+$14,000 Cash', '+20 Equity', '-8 Sanity'],
+            fn: (s) => { s.cash += 14000; s.equity += 20; s.sanity = clamp(s.sanity - 8); return 'Monetized viral wave for $14,000 and 20 equity units!'; }
+          },
+          {
+            label: 'Use the clout to build an authentic community',
+            desc: 'Modest $4,500 payout, huge boost to Social Capital & Sanity.',
+            tags: ['+$4,500 Cash', '+14 Social', '+6 Sanity'],
+            fn: (s) => { s.cash += 4500; s.social = clamp(s.social + 14); s.sanity = clamp(s.sanity + 6); return 'Turned viral moment into a lasting mastermind community!'; }
+          }
+        ]
+      },
+      {
+        title: 'Corporate Restructuring & Layoff Wave',
+        badge: 'CAREER SHOCK',
+        body: 'Management announced an "AI Efficiency Pivot." Your division is downsizing by 20%.',
+        choices: [
+          {
+            label: 'Take the 3-month severance package & upskill',
+            desc: 'Receive $9,000 severance, take a breather, and pivot cleanly.',
+            tags: ['+$9,000 Severance', '+8 Sanity', '-5% Base Salary'],
+            fn: (s) => { s.cash += 9000; s.sanity = clamp(s.sanity + 8); s.salary = Math.round(s.salary * 0.95); return 'Took severance, recharged, and landed a healthier role.'; }
+          },
+          {
+            label: 'Survive the cut by taking on two people’s workloads',
+            desc: 'Keep salary + 10% retention bonus, but absorb heavy burnout.',
+            tags: ['+10% Salary', '-15 Sanity', '-10 Health'],
+            fn: (s) => { s.salary = Math.round(s.salary * 1.10); s.sanity = clamp(s.sanity - 15); s.health = clamp(s.health - 10); return 'Survived the layoff wave, but inherited a double workload.'; }
+          }
+        ]
+      },
+      {
+        title: 'Best Friend’s Destination Wedding',
+        badge: 'SOCIAL DILEMMA',
+        body: 'Your closest college friend is getting married in coastal Italy. Flights, hotel, and formalwear add up fast.',
+        choices: [
+          {
+            label: 'Go all-in and celebrate with your core crew ($3,800)',
+            desc: 'Unforgettable memories and deep lifelong bonds.',
+            tags: ['-$3,800 Cash', '+15 Social', '+9 Sanity'],
+            fn: (s) => { s.cash -= 3800; s.social = clamp(s.social + 15); s.sanity = clamp(s.sanity + 9); return 'Attended the destination wedding—core memories unlocked!'; }
+          },
+          {
+            label: 'Send a thoughtful $300 gift and decline the trip',
+            desc: 'Protect your savings goal, but feel acute FOMO.',
+            tags: ['-$300 Cash', '-9 Social', '-4 Sanity'],
+            fn: (s) => { s.cash -= 300; s.social = clamp(s.social - 9); s.sanity = clamp(s.sanity - 4); return 'Skipped the destination wedding to stay on budget.'; }
+          }
+        ]
+      },
+      {
+        title: 'Return-to-Office (RTO) 5-Day Mandate',
+        badge: 'WORKPLACE SHIFT',
+        body: 'Leadership just mandated 5 days a week at the downtown office, adding 9 hours of weekly commuting.',
+        choices: [
+          {
+            label: 'Comply with the commute for promotion visibility',
+            desc: 'Boost salary by +8%, but lose sleep, money, and free time.',
+            tags: ['+8% Salary', '-$2,400 Commute', '-10 Sanity', '-8 Health'],
+            fn: (s) => { s.salary = Math.round(s.salary * 1.08); s.cash -= 2400; s.sanity = clamp(s.sanity - 10); s.health = clamp(s.health - 8); return 'Endured the 5-day commute for executive visibility.'; }
+          },
+          {
+            label: 'Negotiate remote/hybrid flexibility or switch teams',
+            desc: 'Protect your peace and physical health with flat pay.',
+            tags: ['+9 Sanity', '+7 Health', '+4 Social'],
+            fn: (s) => { s.sanity = clamp(s.sanity + 9); s.health = clamp(s.health + 7); s.social = clamp(s.social + 4); return 'Protected remote flexibility and reclaimed 9 hours a week!'; }
+          }
+        ]
+      }
+    ];
+
+    const BRANCH_DILEMMAS = {
+      fork26: {
+        title: 'Age 26 Crossroads: Hustle Culture vs. Sustainable Pace',
+        badge: 'BRANCHING PATH',
+        body: 'You have built solid skills. Do you join a high-octane Series B rocketship or negotiate a 4-day work week at a mission-driven studio?',
+        choices: [
+          {
+            label: 'Join the Hyper-Growth Rocketship (Node 6)',
+            desc: 'Base salary +25% and +60 RSUs, but intense crunch.',
+            tags: ['+25% Salary', '+60 Equity', '-12 Sanity', '-8 Health'],
+            targetNode: 6,
+            fn: (s) => {
+              s.salary = Math.round(s.salary * 1.25);
+              s.equity += 60;
+              s.sanity = clamp(s.sanity - 12);
+              s.health = clamp(s.health - 8);
+              s.workWeek = '60-Hr Crunch';
+              return 'Joined the hyper-growth startup! Salary & equity surged, work-life boundaries blurred.';
+            }
+          },
+          {
+            label: 'Pivot to a 4-Day Work Week Studio (Node 7)',
+            desc: 'Take a 15% pay cut for 3-day weekends, creative freedom, and wellness.',
+            tags: ['-15% Salary', '+18 Sanity', '+14 Health', '+10 Social'],
+            targetNode: 7,
+            fn: (s) => {
+              s.salary = Math.round(s.salary * 0.85);
+              s.sanity = clamp(s.sanity + 18);
+              s.health = clamp(s.health + 14);
+              s.social = clamp(s.social + 10);
+              s.workWeek = '4-Day Balanced';
+              return 'Switched to a 4-day work week! Fridays are now for health, art, and community.';
+            }
+          }
+        ]
+      },
+      fork37: {
+        title: 'Age 37 Crossroads: Golden Handcuffs vs. Sabbatical Reset',
+        badge: 'BRANCHING PATH',
+        body: 'Mid-career exhaustion is knocking. You have an offer for a high-stress VP track, OR you can take a 6-month sabbatical to reset and consult.',
+        choices: [
+          {
+            label: 'Accept the VP "Golden Handcuffs" Track (Node 13)',
+            desc: 'Salary jumps +30% and +80 RSUs, high pressure.',
+            tags: ['+30% Salary', '+80 Equity', '-14 Sanity', '-10 Health'],
+            targetNode: 13,
+            fn: (s) => {
+              s.salary = Math.round(s.salary * 1.30);
+              s.equity += 80;
+              s.sanity = clamp(s.sanity - 14);
+              s.health = clamp(s.health - 10);
+              s.workWeek = 'Exec 24/7';
+              return 'Stepped into the VP suite. Huge compensation, calendar packed wall-to-wall.';
+            }
+          },
+          {
+            label: 'Take a 6-Month Sabbatical & Fractional Consulting (Node 14)',
+            desc: 'Spend $12k savings to travel, heal burnout, and return refreshed.',
+            tags: ['-$12,000 Cash', '+24 Sanity', '+18 Health', '+12 Social'],
+            targetNode: 14,
+            fn: (s) => {
+              s.cash -= 12000;
+              s.sanity = clamp(s.sanity + 24);
+              s.health = clamp(s.health + 18);
+              s.social = clamp(s.social + 12);
+              s.workWeek = 'Flexible Fractional';
+              return 'Took a transformative 6-month sabbatical! Burnout melted away.';
+            }
+          }
+        ]
+      },
+      fork55: {
+        title: 'Age 55 Crossroads: Corporate Board vs. Community Legacy',
+        badge: 'BRANCHING PATH',
+        body: 'Entering your late-50s chapter: maximize peak net worth on corporate boards, or shift to teaching, mentoring, and wellness?',
+        choices: [
+          {
+            label: 'Stack Corporate Advisory Boards (Node 22)',
+            desc: '+$35,000 cash bonus & +50 RSUs, high travel strain.',
+            tags: ['+$35,000 Cash', '+50 Equity', '-8 Health'],
+            targetNode: 22,
+            fn: (s) => {
+              s.cash += 35000;
+              s.equity += 50;
+              s.health = clamp(s.health - 8);
+              return 'Joined two corporate advisory boards, turbocharging retirement assets.';
+            }
+          },
+          {
+            label: 'Launch a Community Fellowship & Wellness Routine (Node 23)',
+            desc: 'Modest stipend, soaring Social Capital, Sanity, and Longevity.',
+            tags: ['+16 Sanity', '+16 Health', '+20 Social'],
+            targetNode: 23,
+            fn: (s) => {
+              s.sanity = clamp(s.sanity + 16);
+              s.health = clamp(s.health + 16);
+              s.social = clamp(s.social + 20);
+              s.workWeek = 'Mentorship Pace';
+              return 'Dedicated your 50s to mentoring the next generation and mastering longevity.';
+            }
+          }
+        ]
+      }
+    };
+
+    function clamp(val, min = 0, max = 100) {
+      return Math.max(min, Math.min(max, Math.round(val)));
+    }
+
+    function fmtMoney(n) {
+      const sign = n < 0 ? '-' : '';
+      return sign + '$' + Math.abs(Math.round(n)).toLocaleString('en-US');
+    }
+
+    const Game = {
+      state: null,
+      wheelAngle: 0,
+      isSpinning: false,
+
+      init() {
+        this.setupTabs();
+        this.setupButtons();
+        this.resetState('degree');
+        this.renderBoard();
+        this.updateUI();
+        this.openSetupModal();
+      },
+
+      resetState(pathKey = 'degree') {
+        const p = PATH_PRESETS[pathKey];
+        this.state = {
+          pathKey,
+          careerName: p.name,
+          badge: p.badge,
+          nodeId: 0,
+          age: 18,
+          cash: p.cash,
+          hysa: 0,
+          indexFund: 0,
+          crypto: 0,
+          studentLoan: p.studentLoan,
+          salary: p.salary,
+          salaryGrowth: p.salaryGrowth,
+          equity: p.equity,
+          rsuPrice: 120,
+          sanity: p.sanity,
+          health: p.health,
+          social: p.social,
+          workWeek: '5-Day Std',
+          sideGig: false,
+          subsCost: 2400, // $200/mo streaming, apps, delivery pass
+          housingType: 'roommates', // roommates, studio, condo, house
+          homeValue: 0,
+          mortgageBalance: 0,
+          mortgageRate: 0.065,
+          inflationRate: 0.032,
+          marketMood: 'Steady',
+          relationship: 'Single', // Single, Partnered, DINK
+          dependents: 0,
+          hasPet: false,
+          restructures: 0,
+          history: []
+        };
+        this.logEvent(18, `Started adulthood via ${p.name}. Cash: ${fmtMoney(p.cash)}, Debt: ${fmtMoney(p.studentLoan)}.`, 'good');
+      },
+
+      setupTabs() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab).classList.add('active');
+          });
+        });
+      },
+
+      setupButtons() {
+        document.getElementById('btnSpin').addEventListener('click', () => this.spinWheel());
+        document.getElementById('wheelTrigger').addEventListener('click', () => this.spinWheel());
+
+        document.getElementById('btnTherapy').addEventListener('click', () => {
+          if (this.state.cash < 1800) return this.toast('Not enough liquid cash ($1,800 needed).', 'warn');
+          this.state.cash -= 1800;
+          this.state.sanity = clamp(this.state.sanity + 14);
+          this.state.health = clamp(this.state.health + 5);
+          this.logEvent(this.state.age, 'Invested $1,800 in therapy & mindfulness coaching (+14 Sanity, +5 Health).', 'good');
+          this.updateUI();
+        });
+
+        document.getElementById('btnGym').addEventListener('click', () => {
+          if (this.state.cash < 1200) return this.toast('Not enough liquid cash ($1,200 needed).', 'warn');
+          this.state.cash -= 1200;
+          this.state.health = clamp(this.state.health + 12);
+          this.state.sanity = clamp(this.state.sanity + 4);
+          this.logEvent(this.state.age, 'Completed preventive health, ergonomics & nutrition reset (+12 Health, +4 Sanity).', 'good');
+          this.updateUI();
+        });
+
+        document.getElementById('btnCommunity').addEventListener('click', () => {
+          if (this.state.cash < 900) return this.toast('Not enough liquid cash ($900 needed).', 'warn');
+          this.state.cash -= 900;
+          this.state.social = clamp(this.state.social + 12);
+          this.state.sanity = clamp(this.state.sanity + 3);
+          this.logEvent(this.state.age, 'Hosted neighborhood supper club & volunteered (+12 Social Capital).', 'good');
+          this.updateUI();
+        });
+
+        document.getElementById('btnAuditSubs').addEventListener('click', () => {
+          if (this.state.subsCost <= 600) return this.toast('Subscriptions are already lean ($50/mo)!', 'good');
+          const saved = this.state.subsCost - 600;
+          this.state.subsCost = 600;
+          this.state.sanity = clamp(this.state.sanity + 3);
+          this.logEvent(this.state.age, `Audited recurring subscriptions! Cut ${fmtMoney(saved)}/yr in phantom charges.`, 'good');
+          this.updateUI();
+        });
+
+        document.getElementById('btnSideGig').addEventListener('click', () => {
+          this.state.sideGig = !this.state.sideGig;
+          const btn = document.getElementById('btnSideGig');
+          btn.textContent = `⚡ Toggle Side Hustle: ${this.state.sideGig ? 'ON' : 'OFF'}`;
+          btn.style.borderColor = this.state.sideGig ? '#f59e0b' : '';
+          this.logEvent(this.state.age, this.state.sideGig
+            ? 'Activated weekend side hustle (+$7,500/yr income, higher fatigue).'
+            : 'Paused weekend side hustle to protect free time.', 'warn');
+          this.updateUI();
+        });
+      },
+
+      openSetupModal() {
+        const badge = document.getElementById('modalBadge');
+        const title = document.getElementById('modalTitle');
+        const body = document.getElementById('modalBody');
+        const choices = document.getElementById('modalChoices');
+
+        badge.textContent = 'AGE 18 LAUNCHPAD';
+        title.textContent = 'Choose Your Modern Adulting Launch Path';
+        body.innerHTML = `Forget the 1960s conveyor belt. In <strong>ADULTING: Modern Life Simulator</strong>, your goal from Age 18 to 70 is to maximize your holistic <strong>Fulfillment Index</strong>—balancing Financial Net Worth, Mental Sanity, Physical Health, and Social Capital without burning out.`;
+
+        choices.innerHTML = '';
+        Object.entries(PATH_PRESETS).forEach(([key, p]) => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-card';
+          btn.innerHTML = `
+            <h4><span>${p.name}</span> <span style="color:#a5b4fc;">Start Age 18 →</span></h4>
+            <p>${p.desc}</p>
+            <div class="impact-tags">
+              <span class="impact-tag" style="color:var(--wealth);">Start Cash: ${fmtMoney(p.cash)}</span>
+              <span class="impact-tag" style="color:var(--health);">Student Debt: ${fmtMoney(p.studentLoan)}</span>
+              <span class="impact-tag">Base Salary: ${fmtMoney(p.salary)}/yr</span>
+              <span class="impact-tag" style="color:#38bdf8;">Equity: ${p.equity} RSUs</span>
+            </div>
+          `;
+          btn.onclick = () => {
+            this.resetState(key);
+            this.closeModal();
+            this.renderBoard();
+            this.updateUI();
+          };
+          choices.appendChild(btn);
+        });
+
+        document.getElementById('modalBackdrop').classList.add('open');
+      },
+
+      closeModal() {
+        document.getElementById('modalBackdrop').classList.remove('open');
+      },
+
+      calculateCashflow() {
+        const s = this.state;
+        // Effective tax bracket approximation
+        const gross = s.salary + (s.sideGig ? 7500 : 0) + (s.relationship === 'DINK' ? 18000 : 0);
+        const afterTax = Math.round(gross * 0.76);
+
+        // Housing annual cost
+        let housingAnnual = 13200; // roommates $1,100/mo
+        if (s.housingType === 'studio') housingAnnual = 25200; // $2,100/mo
+        if (s.housingType === 'condo') housingAnnual = Math.round(s.mortgageBalance * s.mortgageRate + 6800);
+        if (s.housingType === 'house') housingAnnual = Math.round(s.mortgageBalance * s.mortgageRate + 10500);
+        if (s.relationship === 'DINK' && (s.housingType === 'roommates' || s.housingType === 'studio')) {
+          housingAnnual = Math.round(housingAnnual * 0.65); // Partner rent split benefit
+        }
+
+        // Living + inflation + dependents + pet
+        const baseLiving = Math.round(14500 * (1 + (s.inflationRate - 0.03) * 2));
+        const kidsCost = s.dependents * 14000;
+        const petCost = s.hasPet ? 1400 : 0;
+        const livingAnnual = baseLiving + kidsCost + petCost;
+
+        // Student loan & debt service (10% of balance or min $2,400 if debt > 0)
+        const debtService = s.studentLoan > 0 ? Math.min(s.studentLoan, Math.max(2800, Math.round(s.studentLoan * 0.11))) : 0;
+
+        const subsAnnual = s.subsCost;
+        const netAnnual = afterTax - housingAnnual - livingAnnual - debtService - subsAnnual;
+
+        return { afterTax, housingAnnual, livingAnnual, debtService, subsAnnual, netAnnual };
+      },
+
+      calculateNetWorth() {
+        const s = this.state;
+        const equityVal = s.equity * s.rsuPrice;
+        const homeEquity = Math.max(0, s.homeValue - s.mortgageBalance);
+        const assets = s.cash + s.hysa + s.indexFund + s.crypto + equityVal + homeEquity;
+        const liabilities = s.studentLoan;
+        return Math.round(assets - liabilities);
+      },
+
+      calculateFulfillment() {
+        const s = this.state;
+        const nw = this.calculateNetWorth();
+        // Net worth score mapped 0–100 ($750k+ = 100, $0 = 30, negative = 5–25)
+        let wealthScore = 30;
+        if (nw >= 0) {
+          wealthScore = Math.min(100, Math.round(30 + (Math.sqrt(nw / 750000) * 70)));
+        } else {
+          wealthScore = Math.max(5, Math.round(30 + (nw / 40000) * 20));
+        }
+
+        // Holistic weighted average with burnout/isolation synergy checks
+        let raw = (wealthScore * 0.25) + (s.sanity * 0.25) + (s.health * 0.25) + (s.social * 0.25);
+        if (s.sanity < 25 || s.health < 25) raw -= 8; // Holistic penalty if neglecting wellbeing
+        return clamp(raw, 0, 100);
+      },
+
+      spinWheel() {
+        if (this.isSpinning || this.state.nodeId >= 26) return;
+        this.isSpinning = true;
+        document.getElementById('btnSpin').disabled = true;
+
+        const roll = Math.floor(Math.random() * 6) + 1;
+        this.wheelAngle += 720 + (roll * 60);
+        const wheel = document.getElementById('spinnerWheel');
+        wheel.style.transform = `rotate(${this.wheelAngle}deg)`;
+        document.getElementById('wheelNumber').textContent = '...';
+
+        setTimeout(() => {
+          document.getElementById('wheelNumber').textContent = roll;
+          this.advanceSteps(roll);
+        }, 1250);
+      },
+
+      advanceSteps(steps) {
+        const s = this.state;
+        let current = BOARD_NODES.find(n => n.id === s.nodeId);
+        let stepsTaken = 0;
+
+        while (stepsTaken < steps && current.next.length > 0) {
+          // Stop immediately at branching forks so the player can consciously choose their life path
+          if (current.branchPrompt && stepsTaken > 0) {
+            break;
+          }
+          if (current.branchPrompt && stepsTaken === 0) {
+            this.isSpinning = false;
+            document.getElementById('btnSpin').disabled = false;
+            this.presentBranchModal(current.branchPrompt);
+            return;
+          }
+          const nextId = current.next[0];
+          current = BOARD_NODES.find(n => n.id === nextId);
+          s.nodeId = current.id;
+          stepsTaken++;
+        }
+
+        // Years elapsed during this turn
+        const yearsElapsed = Math.max(1, current.age - s.age);
+        s.age = current.age;
+
+        this.simulateYears(yearsElapsed);
+        this.renderBoard();
+        this.updateUI();
+
+        this.isSpinning = false;
+        document.getElementById('btnSpin').disabled = false;
+
+        // Check if we stopped on a branch or special node
+        if (current.id === 26) {
+          this.presentLegacyModal();
+        } else if (current.branchPrompt) {
+          this.presentBranchModal(current.branchPrompt);
+        } else {
+          this.triggerNodeEvent(current);
+        }
+      },
+
+      simulateYears(years) {
+        const s = this.state;
+        for (let y = 0; y < years; y++) {
+          const cf = this.calculateCashflow();
+          s.cash += cf.netAnnual;
+
+          // Pay down student loan principal from debtService after 6.5% interest
+          if (s.studentLoan > 0) {
+            const interest = Math.round(s.studentLoan * 0.065);
+            s.studentLoan = Math.max(0, s.studentLoan + interest - cf.debtService);
+          }
+
+          // Pay down mortgage principal and appreciate home
+          if (s.homeValue > 0) {
+            s.homeValue = Math.round(s.homeValue * (1 + s.inflationRate + 0.012));
+            s.mortgageBalance = Math.max(0, Math.round(s.mortgageBalance * 0.965));
+          }
+
+          // Investment returns
+          s.hysa = Math.round(s.hysa * 1.045);
+          const marketRoll = (Math.random() * 0.18) - 0.03; // -3% to +15%
+          s.indexFund = Math.max(0, Math.round(s.indexFund * (1 + marketRoll)));
+
+          const cryptoRoll = (Math.random() * 1.1) - 0.42; // -42% to +68%
+          if (s.crypto > 0) {
+            s.crypto = Math.max(0, Math.round(s.crypto * (1 + cryptoRoll)));
+          }
+
+          // RSU stock price drift
+          s.rsuPrice = Math.max(30, Math.round(s.rsuPrice * (1 + (marketRoll * 0.8))));
+
+          // Annual salary raise
+          s.salary = Math.round(s.salary * (1 + (s.salaryGrowth - 1) * 0.65));
+
+          // Subscription creep (+$180/yr as platforms hike prices)
+          s.subsCost += 180;
+
+          // Lifestyle & schedule impact on Sanity, Health, Social
+          if (s.sideGig) {
+            s.sanity = clamp(s.sanity - 3);
+            s.health = clamp(s.health - 3);
+          }
+          if (s.workWeek.includes('Crunch') || s.workWeek.includes('Exec')) {
+            s.sanity = clamp(s.sanity - 3);
+            s.health = clamp(s.health - 2);
+          } else if (s.workWeek.includes('4-Day') || s.workWeek.includes('Fractional')) {
+            s.sanity = clamp(s.sanity + 2);
+            s.health = clamp(s.health + 1);
+          }
+          if (s.housingType === 'studio' || s.housingType === 'condo' || s.housingType === 'house') {
+            s.sanity = clamp(s.sanity + 1);
+          }
+          if (s.hasPet) {
+            s.sanity = clamp(s.sanity + 2);
+          }
+          if (s.dependents > 0) {
+            s.social = clamp(s.social + 2);
+            s.sanity = clamp(s.sanity - 1);
+          }
+        }
+
+        // Macroeconomic drift
+        const moods = [
+          { name: 'Bull Rally', inf: 0.028, rate: 0.058 },
+          { name: 'Steady', inf: 0.032, rate: 0.065 },
+          { name: 'Inflation Spike', inf: 0.054, rate: 0.078 },
+          { name: 'Tech Cooling', inf: 0.024, rate: 0.052 }
+        ];
+        const m = moods[Math.floor(Math.random() * moods.length)];
+        s.marketMood = m.name;
+        s.inflationRate = m.inf;
+        s.mortgageRate = m.rate;
+
+        // Check Emergency Lifestyle Restructure (No Sudden Death, triggers recovery)
+        this.checkEmergencyRestructure();
+      },
+
+      checkEmergencyRestructure() {
+        const s = this.state;
+        if (s.sanity <= 12 || s.health <= 12) {
+          s.restructures++;
+          s.sanity = Math.max(48, s.sanity + 35);
+          s.health = Math.max(48, s.health + 35);
+          s.cash -= 6500;
+          s.sideGig = false;
+          s.workWeek = 'Recovery Pace';
+          this.logEvent(s.age, '🚨 BURNOUT INTERVENTION: Mandatory medical sabbatical & workload restructure (-$6,500, Sanity & Health restored to 48).', 'danger');
+        } else if (s.cash < -25000) {
+          s.restructures++;
+          // Liquidate investments first or restructure debt
+          const rescued = s.hysa + s.indexFund + s.crypto;
+          s.cash += rescued;
+          s.hysa = 0; s.indexFund = 0; s.crypto = 0;
+          if (s.cash < -10000) {
+            s.studentLoan += Math.abs(s.cash);
+            s.cash = 1500;
+          }
+          s.housingType = 'roommates';
+          s.sanity = clamp(s.sanity - 10);
+          this.logEvent(s.age, '🚨 INSOLVENCY RESTRUCTURE: Downsized to shared roommate housing and consolidated negative cash into structured debt.', 'danger');
+        }
+      },
+
+      triggerNodeEvent(node) {
+        const s = this.state;
+        if (node.type === 'hiccup') {
+          const card = MODERN_HICCUPS[Math.floor(Math.random() * MODERN_HICCUPS.length)];
+          this.presentEventCard(card);
+        } else if (node.type === 'milestone') {
+          const raise = Math.round(s.salary * 0.12);
+          s.salary += raise;
+          s.equity += 15;
+          this.logEvent(s.age, `🌟 Milestone "${node.label}": Promoted! Base salary +${fmtMoney(raise)}/yr and +15 RSUs.`, 'good');
+        } else if (node.type === 'wellness') {
+          s.sanity = clamp(s.sanity + 7);
+          s.health = clamp(s.health + 6);
+          s.social = clamp(s.social + 6);
+          this.logEvent(s.age, `🌿 Wellness Node "${node.label}": Reconnected with community & health (+7 Sanity, +6 Health, +6 Social).`, 'good');
+        } else if (node.type === 'market') {
+          const dividend = Math.round((s.indexFund + s.hysa) * 0.06) + 2500;
+          s.cash += dividend;
+          this.logEvent(s.age, `📊 Market Node "${node.label}": Rebalanced portfolio & tax-loss harvested (+${fmtMoney(dividend)} cash).`, 'good');
+        }
+        this.updateUI();
+      },
+
+      presentEventCard(card) {
+        const badge = document.getElementById('modalBadge');
+        const title = document.getElementById('modalTitle');
+        const body = document.getElementById('modalBody');
+        const choices = document.getElementById('modalChoices');
+
+        badge.textContent = card.badge;
+        title.textContent = `Age ${this.state.age}: ${card.title}`;
+        body.textContent = card.body;
+        choices.innerHTML = '';
+
+        card.choices.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-card';
+          btn.innerHTML = `
+            <h4><span>${c.label}</span> <span>Select →</span></h4>
+            <p>${c.desc}</p>
+            <div class="impact-tags">
+              ${c.tags.map(t => `<span class="impact-tag">${t}</span>`).join('')}
+            </div>
+          `;
+          btn.onclick = () => {
+            const msg = c.fn(this.state);
+            this.logEvent(this.state.age, msg, 'warn');
+            this.closeModal();
+            this.checkEmergencyRestructure();
+            this.updateUI();
+          };
+          choices.appendChild(btn);
+        });
+
+        document.getElementById('modalBackdrop').classList.add('open');
+      },
+
+      presentBranchModal(branchKey) {
+        const dilemma = BRANCH_DILEMMAS[branchKey];
+        if (!dilemma) return;
+
+        const badge = document.getElementById('modalBadge');
+        const title = document.getElementById('modalTitle');
+        const body = document.getElementById('modalBody');
+        const choices = document.getElementById('modalChoices');
+
+        badge.textContent = dilemma.badge;
+        title.textContent = dilemma.title;
+        body.textContent = dilemma.body;
+        choices.innerHTML = '';
+
+        dilemma.choices.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-card';
+          btn.innerHTML = `
+            <h4><span>${c.label}</span> <span style="color:#ec4899;">Choose Path →</span></h4>
+            <p>${c.desc}</p>
+            <div class="impact-tags">
+              ${c.tags.map(t => `<span class="impact-tag">${t}</span>`).join('')}
+            </div>
+          `;
+          btn.onclick = () => {
+            const target = BOARD_NODES.find(n => n.id === c.targetNode);
+            const years = Math.max(1, target.age - this.state.age);
+            this.state.nodeId = target.id;
+            this.state.age = target.age;
+            this.simulateYears(years);
+            const msg = c.fn(this.state);
+            this.logEvent(this.state.age, msg, 'good');
+            this.closeModal();
+            this.renderBoard();
+            this.updateUI();
+          };
+          choices.appendChild(btn);
+        });
+
+        document.getElementById('modalBackdrop').classList.add('open');
+      },
+
+      invest(type, amount) {
+        const s = this.state;
+        if (s.cash < amount) return this.toast(`Need ${fmtMoney(amount)} in liquid cash to invest.`, 'warn');
+        s.cash -= amount;
+        if (type === 'hysa') s.hysa += amount;
+        if (type === 'index') s.indexFund += amount;
+        if (type === 'crypto') {
+          s.crypto += amount;
+          s.sanity = clamp(s.sanity - 2);
+        }
+        this.logEvent(s.age, `Allocated ${fmtMoney(amount)} into ${type.toUpperCase()}.`, 'good');
+        this.updateUI();
+      },
+
+      withdraw(type, amount) {
+        const s = this.state;
+        const map = { hysa: 'hysa', index: 'indexFund', crypto: 'crypto' };
+        const key = map[type];
+        if (s[key] <= 0) return this.toast('No balance in that account to withdraw.', 'warn');
+        const actual = Math.min(amount, s[key]);
+        s[key] -= actual;
+        s.cash += actual;
+        this.logEvent(s.age, `Withdrew ${fmtMoney(actual)} from ${type.toUpperCase()} to liquid cash.`, 'good');
+        this.updateUI();
+      },
+
+      payDebt(amount) {
+        const s = this.state;
+        if (s.studentLoan <= 0) return this.toast('You are already 100% debt-free!', 'good');
+        if (s.cash < 1000) return this.toast('Keep at least $1,000 cash before making extra debt payments.', 'warn');
+        const pay = Math.min(amount, s.studentLoan, s.cash);
+        s.cash -= pay;
+        s.studentLoan -= pay;
+        s.sanity = clamp(s.sanity + 5);
+        this.logEvent(s.age, `Paid down ${fmtMoney(pay)} in debt principal (+5 Sanity)!`, 'good');
+        this.updateUI();
+      },
+
+      changeHousing(type) {
+        const s = this.state;
+        s.housingType = type;
+        if (type === 'roommates') {
+          s.sanity = clamp(s.sanity - 2);
+          s.social = clamp(s.social + 3);
+          this.logEvent(s.age, 'Moved into a shared apartment with roommates ($1,100/mo).', 'warn');
+        } else if (type === 'studio') {
+          s.sanity = clamp(s.sanity + 7);
+          this.logEvent(s.age, 'Leased a quiet solo studio apartment ($2,100/mo, +7 Sanity).', 'good');
+        }
+        this.updateUI();
+      },
+
+      buyProperty(tier) {
+        const s = this.state;
+        if (tier === 'condo') {
+          if (s.cash < 54000) return this.toast('Need $54,000 liquid cash for Condo down payment & closing.', 'warn');
+          s.cash -= 54000;
+          s.housingType = 'condo';
+          s.homeValue = 360000;
+          s.mortgageBalance = 306000;
+          s.sanity = clamp(s.sanity + 10);
+          this.logEvent(s.age, '🏡 Bought an Urban Condo for $360k! Locked in housing stability (+10 Sanity).', 'good');
+        } else if (tier === 'house') {
+          if (s.cash < 95000) return this.toast('Need $95,000 liquid cash for Eco Townhome down payment.', 'warn');
+          s.cash -= 95000;
+          s.housingType = 'house';
+          s.homeValue = 620000;
+          s.mortgageBalance = 525000;
+          s.sanity = clamp(s.sanity + 12);
+          s.health = clamp(s.health + 8);
+          s.social = clamp(s.social + 10);
+          this.logEvent(s.age, '🏡 Purchased an Eco Townhome ($620k)! Backyard + community boost.', 'good');
+        }
+        this.updateUI();
+      },
+
+      relationshipAction(action) {
+        const s = this.state;
+        if (action === 'date') {
+          if (s.cash < 1500) return this.toast('Need $1,500 for dating & social activities.', 'warn');
+          s.cash -= 1500;
+          s.relationship = 'Partnered';
+          s.social = clamp(s.social + 14);
+          s.sanity = clamp(s.sanity + 8);
+          this.logEvent(s.age, '❤️ Met a wonderful partner! Social Capital +14, Sanity +8.', 'good');
+        } else if (action === 'cohabit') {
+          if (s.relationship === 'Single') return this.toast('Build a relationship first before cohabitating!', 'warn');
+          s.relationship = 'DINK';
+          s.social = clamp(s.social + 10);
+          s.sanity = clamp(s.sanity + 6);
+          this.logEvent(s.age, '🔑 Moved in together (Dual Income household)! Shared rent & +$18k household synergy.', 'good');
+        } else if (action === 'kid') {
+          s.dependents += 1;
+          s.social = clamp(s.social + 18);
+          s.sanity = clamp(s.sanity - 6);
+          this.logEvent(s.age, `👶 Welcomed Dependent #${s.dependents}! Deep fulfillment (+18 Social, +$14k/yr care cost).`, 'good');
+        } else if (action === 'pet') {
+          if (s.hasPet) return this.toast('You already have a loyal rescue companion!', 'good');
+          if (s.cash < 800) return this.toast('Need $800 adoption & setup fee.', 'warn');
+          s.cash -= 800;
+          s.hasPet = true;
+          s.sanity = clamp(s.sanity + 12);
+          s.health = clamp(s.health + 6);
+          s.social = clamp(s.social + 6);
+          this.logEvent(s.age, '🐾 Adopted a rescue pet! Daily walks & companionship (+12 Sanity, +6 Health).', 'good');
+        }
+        this.updateUI();
+      },
+
+      presentLegacyModal() {
+        const s = this.state;
+        const nw = this.calculateNetWorth();
+        const fulfillment = this.calculateFulfillment();
+
+        const letterGrade = (score) => {
+          if (score >= 88) return 'S';
+          if (score >= 76) return 'A';
+          if (score >= 62) return 'B';
+          if (score >= 48) return 'C';
+          return 'D';
+        };
+
+        const wealthScore = clamp(nw >= 0 ? 30 + Math.sqrt(nw / 750000) * 70 : 15);
+        let archetype = 'The Balanced Navigator';
+        if (fulfillment >= 85) archetype = 'The Renaissance Adult (Holistic Master)';
+        else if (wealthScore >= 85 && s.sanity < 50) archetype = 'The Burned-Out Titan';
+        else if (s.sanity >= 82 && s.health >= 80) archetype = 'The Zen Longevity Architect';
+        else if (s.social >= 85) archetype = 'The Beloved Community Pillar';
+
+        const badge = document.getElementById('modalBadge');
+        const title = document.getElementById('modalTitle');
+        const body = document.getElementById('modalBody');
+        const choices = document.getElementById('modalChoices');
+
+        badge.textContent = 'AGE 70 LEGACY SUMMARY';
+        title.textContent = `Legacy Archetype: ${archetype}`;
+        body.innerHTML = `
+          <p style="margin-bottom:1rem;">You reached Age 70 with a final <strong>Fulfillment Index of ${fulfillment} / 100</strong> and a Net Worth of <strong>${fmtMoney(nw)}</strong> (${s.restructures} emergency burnout/debt restructures).</p>
+          <div class="grade-grid">
+            <div class="grade-box">
+              <div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Financial Independence</div>
+                <div style="font-weight:800; color:var(--wealth);">${fmtMoney(nw)}</div>
+              </div>
+              <div class="grade-letter">${letterGrade(wealthScore)}</div>
+            </div>
+            <div class="grade-box">
+              <div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Work-Life Sanity</div>
+                <div style="font-weight:800; color:var(--sanity);">${s.sanity} / 100</div>
+              </div>
+              <div class="grade-letter">${letterGrade(s.sanity)}</div>
+            </div>
+            <div class="grade-box">
+              <div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Physical Vitality</div>
+                <div style="font-weight:800; color:var(--health);">${s.health} / 100</div>
+              </div>
+              <div class="grade-letter">${letterGrade(s.health)}</div>
+            </div>
+            <div class="grade-box">
+              <div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Community &amp; Love</div>
+                <div style="font-weight:800; color:var(--social);">${s.social} / 100</div>
+              </div>
+              <div class="grade-letter">${letterGrade(s.social)}</div>
+            </div>
+          </div>
+        `;
+
+        choices.innerHTML = `
+          <button class="spin-btn" onclick="Game.openSetupModal()">↻ Start a New Life Path (Replay)</button>
+        `;
+        document.getElementById('modalBackdrop').classList.add('open');
+      },
+
+      renderBoard() {
+        const svg = document.getElementById('lifeBoardSvg');
+        const s = this.state;
+
+        const colorMap = {
+          start: '#38bdf8',
+          milestone: '#6366f1',
+          branch: '#ec4899',
+          hiccup: '#f59e0b',
+          wellness: '#10b981',
+          market: '#38bdf8',
+          finish: '#a855f7'
+        };
+
+        let edgesHtml = '';
+        BOARD_NODES.forEach(n => {
+          n.next.forEach(targetId => {
+            const t = BOARD_NODES.find(x => x.id === targetId);
+            if (!t) return;
+            const visited = s.nodeId >= t.id;
+            edgesHtml += `<line x1="${n.x}" y1="${n.y}" x2="${t.x}" y2="${t.y}"
+              stroke="${visited ? '#6366f1' : '#334155'}"
+              stroke-width="${visited ? '4' : '2.5'}"
+              stroke-dasharray="${n.type === 'branch' ? '5,4' : 'none'}" />`;
+          });
+        });
+
+        let nodesHtml = '';
+        BOARD_NODES.forEach(n => {
+          const isCurrent = n.id === s.nodeId;
+          const col = colorMap[n.type] || '#6366f1';
+          const r = isCurrent ? 17 : 12;
+
+          nodesHtml += `
+            <g transform="translate(${n.x}, ${n.y})" style="cursor:pointer;">
+              ${isCurrent ? `<circle r="24" fill="none" stroke="#f8fafc" stroke-width="2.5" stroke-dasharray="4,3"/>` : ''}
+              <circle r="${r}" fill="${col}" stroke="${isCurrent ? '#ffffff' : '#0f172a'}" stroke-width="${isCurrent ? 3.5 : 2}" />
+              <text y="4" fill="#fff" font-size="9" font-weight="800" text-anchor="middle">${n.age}</text>
+              <text y="${n.y < 140 && n.id === 6 ? -18 : 27}" fill="${isCurrent ? '#f8fafc' : '#94a3b8'}"
+                font-size="${isCurrent ? '10.5' : '9.5'}" font-weight="${isCurrent ? '800' : '600'}" text-anchor="middle">${n.label}</text>
+            </g>
+          `;
+        });
+
+        svg.innerHTML = edgesHtml + nodesHtml;
+      },
+
+      logEvent(age, text, tone = 'good') {
+        this.state.history.unshift({ age, text, tone });
+        const feed = document.getElementById('logFeed');
+        if (!feed) return;
+        feed.innerHTML = this.state.history.slice(0, 30).map(item => `
+          <div class="log-item ${item.tone}">
+            <span class="age-tag">[Age ${item.age}]</span>
+            <span>${item.text}</span>
+          </div>
+        `).join('');
+      },
+
+      toast(msg, tone = 'warn') {
+        this.logEvent(this.state.age, msg, tone);
+      },
+
+      updateUI() {
+        const s = this.state;
+        const nw = this.calculateNetWorth();
+        const cf = this.calculateCashflow();
+        const fulfillment = this.calculateFulfillment();
+        const curNode = BOARD_NODES.find(n => n.id === s.nodeId);
+
+        // Header
+        document.getElementById('hdrAge').textContent = s.age;
+        document.getElementById('hdrInflation').textContent = (s.inflationRate * 100).toFixed(1) + '%';
+        document.getElementById('hdrMortgageRate').textContent = (s.mortgageRate * 100).toFixed(1) + '%';
+        document.getElementById('hdrMarketMood').textContent = s.marketMood;
+        document.getElementById('hdrFulfillment').textContent = `${fulfillment} / 100`;
+
+        // Left Meters
+        document.getElementById('archetypeBadge').textContent = s.badge;
+        document.getElementById('valNetWorth').textContent = fmtMoney(nw);
+        document.getElementById('valNetWorth').style.color = nw >= 0 ? 'var(--wealth)' : 'var(--danger)';
+        const nwPct = clamp(nw >= 0 ? 20 + (nw / 600000) * 80 : 10, 5, 100);
+        document.getElementById('barNetWorth').style.width = `${nwPct}%`;
+        document.getElementById('valCash').textContent = fmtMoney(s.cash);
+        document.getElementById('valDebt').textContent = fmtMoney(s.studentLoan + s.mortgageBalance);
+
+        document.getElementById('valSanity').textContent = `${s.sanity} / 100`;
+        document.getElementById('barSanity').style.width = `${s.sanity}%`;
+        document.getElementById('subSanityStatus').textContent = s.sanity >= 70 ? 'Thriving' : s.sanity >= 40 ? 'Stressed' : 'Near Burnout!';
+        document.getElementById('valWorkWeek').textContent = s.workWeek;
+
+        document.getElementById('valHealth').textContent = `${s.health} / 100`;
+        document.getElementById('barHealth').style.width = `${s.health}%`;
+        document.getElementById('subHealthStatus').textContent = s.health >= 70 ? 'Vibrant' : s.health >= 40 ? 'Fatigued' : 'Chronic Strain!';
+        document.getElementById('valBurnoutRisk').textContent = (s.sanity < 35 || s.health < 35) ? 'HIGH' : 'Low';
+
+        document.getElementById('valSocial').textContent = `${s.social} / 100`;
+        document.getElementById('barSocial').style.width = `${s.social}%`;
+        document.getElementById('valHousehold').textContent = `${s.relationship} • ${s.dependents} Kids`;
+        document.getElementById('valPets').textContent = s.hasPet ? '🐾 Rescue Pet' : 'No Pets';
+
+        // Chips
+        document.getElementById('chipCareer').textContent = s.careerName;
+        document.getElementById('chipSalary').textContent = `${fmtMoney(s.salary)}/yr`;
+        const housingNames = { roommates: 'Roommates', studio: 'Solo Studio', condo: 'Own Condo', house: 'Own Townhome' };
+        document.getElementById('chipHousing').textContent = housingNames[s.housingType];
+        document.getElementById('chipEquity').textContent = `${s.equity} RSUs (${fmtMoney(s.equity * s.rsuPrice)})`;
+
+        // Cashflow
+        document.getElementById('cfIncome').textContent = `+${fmtMoney(cf.afterTax)}`;
+        document.getElementById('cfHousing').textContent = `-${fmtMoney(cf.housingAnnual)}`;
+        document.getElementById('cfLiving').textContent = `-${fmtMoney(cf.livingAnnual)}`;
+        document.getElementById('cfDebt').textContent = `-${fmtMoney(cf.debtService)}`;
+        document.getElementById('cfSubs').textContent = `-${fmtMoney(cf.subsAnnual)}`;
+        const netEl = document.getElementById('cfNet');
+        netEl.textContent = `${cf.netAnnual >= 0 ? '+' : ''}${fmtMoney(cf.netAnnual)} / yr`;
+        netEl.className = cf.netAnnual >= 0 ? 'pos' : 'neg';
+
+        // Board label
+        if (curNode) {
+          document.getElementById('nodeLocationLabel').textContent = `Node ${curNode.id}: ${curNode.label} (Age ${s.age})`;
+        }
+
+        // Right Column Balances
+        document.getElementById('balHysa').textContent = fmtMoney(s.hysa);
+        document.getElementById('balIndex').textContent = fmtMoney(s.indexFund);
+        document.getElementById('balCrypto').textContent = fmtMoney(s.crypto);
+        document.getElementById('balStudentLoan').textContent = fmtMoney(s.studentLoan);
+
+        document.getElementById('housingCurrentTitle').textContent = housingNames[s.housingType];
+        document.getElementById('housingCurrentDesc').textContent = s.homeValue > 0
+          ? `Home Value: ${fmtMoney(s.homeValue)} • Mortgage Bal: ${fmtMoney(s.mortgageBalance)}`
+          : `Annual Rent Cost: ${fmtMoney(cf.housingAnnual)}/yr`;
+
+        document.getElementById('relStatusLabel').textContent = s.relationship;
+        document.getElementById('kidsLabel').textContent = `${s.dependents} Dependent(s)`;
+        document.getElementById('petLabel').textContent = s.hasPet ? '🐾 Rescue Companion' : 'None';
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => Game.init());
+  </script>
+</body>
+</html>
+
